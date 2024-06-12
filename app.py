@@ -9,14 +9,13 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud
 import io
 import base64
-from google_play_scraper import reviews, Sort, app
+from google_play_scraper import reviews, Sort
 import nltk
 import os
 import datetime
-import requests
-from bs4 import BeautifulSoup
 import tempfile
 import uuid
+from urllib.parse import urlparse, parse_qs
 
 # Download necessary NLTK data files
 nltk.download('punkt')
@@ -29,10 +28,16 @@ app = Flask(__name__)
 classifier = joblib.load('saved_models/svm_model_rbf.pkl')
 vectorizer = joblib.load('saved_models/tfidf_vectorizer.pkl')
 
+
+
 def extract_app_id(input_text):
-    """Extract app ID from the given input text (either URL or app ID)."""
-    if 'id=' in input_text:
-        return input_text.split('id=')[-1].split('&')[0]
+    if input_text.startswith("http"):
+        parsed_url = urlparse(input_text)
+        query_params = parse_qs(parsed_url.query)
+        input_text = query_params.get('id', [None])[0]
+    else:
+        input_text = input_text
+
     return input_text
 
 def preprocess_text(text):
@@ -107,7 +112,6 @@ def visualize_sentiment_by_version(df):
     plot_url = base64.b64encode(img.getvalue()).decode()
     return plot_url
 
-
 @app.route('/')
 def index():
     log_access(request)
@@ -122,6 +126,8 @@ def predict():
     session_dir = os.path.join(tempfile.gettempdir(), session_id)
     os.makedirs(session_dir)
     app_id = extract_app_id(input_text)
+    if not app_id:
+        return redirect('/')
     reviews_data = scrape_reviews(app_id, num_reviews=300)
     if reviews_data:
         df = preprocess_reviews(reviews_data)
@@ -131,9 +137,9 @@ def predict():
         wordcloud_plot = generate_wordcloud(df)
         sentiment_by_version_plot = visualize_sentiment_by_version(df)
         df.to_csv(os.path.join(session_dir, 'results.csv'), index=False, encoding='utf-8')
-        return render_template('result.html', sentiment_plot=sentiment_plot, wordcloud_plot=wordcloud_plot, sentiment_by_version_plot=sentiment_by_version_plot,app_id=app_id, session_id=session_id, tables=[df.head(10).to_html(classes='data')], titles=df.columns.values)
+        return render_template('result.html', sentiment_plot=sentiment_plot, wordcloud_plot=wordcloud_plot, sentiment_by_version_plot=sentiment_by_version_plot, app_id=app_id, session_id=session_id, tables=[df.head(10).to_html(classes='data')], titles=df.columns.values)
     else:
-        return "Error: Unable to scrape reviews"
+        return redirect('/')
 
 @app.route('/download/<session_id>')
 def download(session_id):
@@ -177,4 +183,4 @@ def log_access(request):
         log_file.write(log_entry + "\n")
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0', port=15011)
+    app.run(debug=True, host='0.0.0.0', port=15011)
