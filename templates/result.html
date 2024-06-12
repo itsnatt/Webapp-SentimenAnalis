@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analysis Result</title>
+<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+<div class="container mx-auto p-4">
+<h1 class="text-2xl font-bold text-center mb-4">Sentiment Analysis Result</h1>
+<h2 class="text-2xl font-bold text-center mb-4">App ID: {{ app_id }}</h2>
+<div class="flex flex-wrap mb-4">
+<div class="w-full md:w-1/2 p-2">
+<h2 class="text-xl font-semibold mb-2">Sentiment Distribution</h2>
+<img src="data:image/png;base64,{{ sentiment_plot }}" alt="Sentiment Distribution" class="w-full h-auto">
+</div>
+<div class="w-full md:w-1/2 p-2">
+<h2 class="text-xl font-semibold mb-2">Word Cloud</h2>
+<img src="data:image/png;base64,{{ wordcloud_plot }}" alt="Word Cloud" class="w-full h-auto">
+<h2 class="text-xl font-semibold mt-5 mb-2">Average Sentiment by Version</h2>
+<img src="data:image/png;base64,{{ sentiment_by_version_plot }}" alt="Average Sentiment by Version">
+</div>
+</div>
+<h2 class="text-2xl font-semibold mb-4">Sample Reviews</h2>
+<div class="mb-4 overflow-x-auto">
+<table class="min-w-full bg-white border border-gray-200 divide-y divide-gray-200">
+<thead class="bg-gray-50">
+<tr>
+{% for title in titles %}
+<th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+{{ title }}
+</th>
+{% endfor %}
+</tr>
+</thead>
+<tbody class="bg-white divide-y divide-gray-200">
+{% for row in tables[0].split('<tr>')[1:] %}
+<tr class="hover:bg-gray-100">
+{% for cell in row.split('<td>')[1:] %}
+<td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+{{ cell.split('</td>')[0] }}
+</td>
+{% endfor %}
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+<div class="text-right">
+<a href="/" class="bg-blue-500 text-white p-2 rounded">Back to Home</a>
+ <a href="{{ url_for('download', session_id=session_id) }}"  class="bg-green-500 ml-5 text-white p-2 rounded">Download Results</a>
+</div>
+</div>
+</body>
+</html>
