@@ -82,6 +82,7 @@ def visualize_sentiment_distribution(df):
     plt.savefig(img, format='png')
     img.seek(0)
     plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
     return plot_url
 
 def generate_wordcloud(df):
@@ -95,6 +96,7 @@ def generate_wordcloud(df):
     plt.savefig(img, format='png')
     img.seek(0)
     wordcloud_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
     return wordcloud_url
 
 def visualize_sentiment_by_version(df):
@@ -110,6 +112,7 @@ def visualize_sentiment_by_version(df):
     plt.savefig(img, format='png')
     img.seek(0)
     plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
     return plot_url
 
 @app.route('/')
